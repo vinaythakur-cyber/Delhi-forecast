@@ -14,6 +14,7 @@ from pipeline import jobs
 from pipeline.config import get_settings
 
 log = logging.getLogger("backend.scheduler")
+RETRY_SECONDS = 120  # wait between attempts at first-time setup
 
 
 class Scheduler:
@@ -33,10 +34,14 @@ class Scheduler:
 
     def _run(self) -> None:
         interval = get_settings().refresh_minutes * 60
-        try:
-            jobs.bootstrap(if_empty=True)
-        except Exception:
-            log.exception("bootstrap failed; will retry on the next tick")
+        while True:  # first-time setup: retry every 2 minutes until it succeeds (network down, rate limit, ...)
+            try:
+                jobs.bootstrap(if_empty=True)
+                break
+            except Exception:
+                log.exception("first-time setup failed; retrying in %d s", RETRY_SECONDS)
+                if self._stop.wait(RETRY_SECONDS):
+                    return
         while not self._stop.wait(interval):
             try:
                 jobs.refresh()

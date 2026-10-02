@@ -22,7 +22,7 @@ python run.py          # on Windows you can also use:  py run.py
 That single command creates a virtual environment, installs the dependencies, downloads about four years of hourly
 data, trains the models, makes the first forecast, starts the server and opens <http://127.0.0.1:8000>.
 
-* **First run: roughly 5 to 10 minutes** (download + install + training). The page shows a "setup is running" message
+* **First run: roughly 3 to 10 minutes** (install + download + training; about 3.5 minutes on the machine this was built on). The page shows a "setup is running" message
   if you open it earlier. Every later run starts in seconds.
 * While it runs it refreshes the data and forecast **every hour** by itself.
 * Stop with `Ctrl+C`. Your data stays in `data/delhi_aqi.db`.

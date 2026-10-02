@@ -38,7 +38,8 @@ def in_project_venv() -> bool:
 
 
 def step(msg: str) -> None:
-    print(f"\n\033[1m==> {msg}\033[0m", flush=True)
+    bold, reset = ("", "") if os.name == "nt" else ("\033[1m", "\033[0m")  # plain text on Windows consoles
+    print(f"\n{bold}==> {msg}{reset}", flush=True)
 
 
 def ensure_environment(reinstall: bool) -> None:
@@ -64,7 +65,10 @@ def main() -> None:
 
     if not in_project_venv():
         ensure_environment(args.reinstall)
-        os.execv(str(venv_python()), [str(venv_python()), str(Path(__file__).resolve()), *sys.argv[1:]])  # re-run inside the venv
+        command = [str(venv_python()), str(Path(__file__).resolve()), *sys.argv[1:]]  # re-run inside the venv
+        if os.name == "nt":  # os.execv does not replace the process on Windows
+            sys.exit(subprocess.call(command))
+        os.execv(command[0], command)
 
     os.chdir(ROOT)
     sys.path.insert(0, str(ROOT))
