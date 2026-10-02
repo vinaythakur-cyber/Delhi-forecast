@@ -1,0 +1,25 @@
+[project]
+name = "delhi-aqi"
+version = "1.0.0"
+description = "Delhi air quality: history, live data, 72-hour probabilistic forecast, honest evaluation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.setuptools]
+packages = ["pipeline", "ml", "backend", "backend.app", "backend.app.routes"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning", "ignore::UserWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["frontend", "notebooks", "backend/app/static"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "B008"]
