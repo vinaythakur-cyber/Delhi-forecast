@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     request_pause_s: float = 0.3
     rate_limit_wait_s: float = 65.0
 
+    # Which pollutants can set the headline AQI: "pm2_5" (default), "pm" (PM2.5+PM10) or "all"
+    aqi_basis: str = "pm2_5"
+
     # Scheduler
     enable_scheduler: bool = True
     refresh_minutes: int = 60
@@ -48,6 +51,12 @@ class Settings(BaseSettings):
     @property
     def is_sqlite(self) -> bool:
         return self.database_url.startswith("sqlite")
+
+    @property
+    def basis_pollutants(self) -> list[str]:
+        from pipeline.aqi import BASES
+
+        return BASES.get(self.aqi_basis, BASES["pm2_5"])
 
     @property
     def cors_list(self) -> list[str]:
