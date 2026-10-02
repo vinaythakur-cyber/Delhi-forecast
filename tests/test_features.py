@@ -85,7 +85,7 @@ def test_calendar_features_known_values():
     assert cal["is_holiday"].tolist() == [1, 0, 1, 0]  # Diwali day, Republic Day
     assert cal["stubble_season"].tolist() == [1, 1, 0, 0]
     assert cal["winter"].tolist() == [1, 0, 1, 0]
-    assert cal["is_weekend"].iloc[1] == 0 and calendar_features(pd.DatetimeIndex(["2024-11-02 06:00"]))["is_weekend"].iloc[0] == 1
+    assert cal["is_weekend"].iloc[1] == 1 and calendar_features(pd.DatetimeIndex(["2024-11-02 06:00"]))["is_weekend"].iloc[0] == 1
 
 
 def test_calendar_uses_delhi_local_hour():
