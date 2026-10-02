@@ -1,0 +1,33 @@
+# Keeps a deployed copy fresh without a paid always-on worker (free-tier friendly).
+# Set the repository secret DATABASE_URL to the same PostgreSQL URL the web service uses.
+# Run it once by hand with command=bootstrap to do the first download and training on a
+# GitHub runner (7 GB RAM) instead of on a small free web instance.
+name: Refresh data and forecast
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "bootstrap (first run), refresh (hourly), or train (force retrain)"
+        default: refresh
+        type: choice
+        options: [refresh, bootstrap, train]
+
+jobs:
+  refresh:
+    if: ${{ vars.ENABLE_REFRESH == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run job
+        run: python -m pipeline.jobs ${{ github.event.inputs.command || 'refresh' }}

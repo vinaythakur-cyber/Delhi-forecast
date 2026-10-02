@@ -1,0 +1,14 @@
+.git
+.github
+.venv
+**/node_modules
+frontend/.next
+frontend/out
+data/*.db*
+**/__pycache__
+.pytest_cache
+.ruff_cache
+notebooks
+docs
+tests
+*.zip

@@ -1,0 +1,61 @@
+# docker compose up --build      then open http://localhost:8000
+#
+#   db      PostgreSQL 16 (data survives restarts in the `pgdata` volume)
+#   init    one-shot: downloads history, trains models, makes the first forecast, then exits
+#   api     FastAPI + the built website on :8000 (no heavy work happens here)
+#   worker  refreshes data and the forecast every hour and retrains weekly
+#
+# Every setting has a default; copy .env.example to .env only if you want to change something.
+x-app: &app
+  build: .
+  env_file:
+    - path: .env
+      required: false
+  environment: &app-env
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-delhi}:${POSTGRES_PASSWORD:-delhi_aqi_dev}@db:5432/${POSTGRES_DB:-delhi_aqi}
+    ENABLE_SCHEDULER: "false"
+    HOST: 0.0.0.0
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-delhi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-delhi_aqi_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-delhi_aqi}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-delhi} -d ${POSTGRES_DB:-delhi_aqi}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  init:
+    <<: *app
+    command: python -m pipeline.jobs bootstrap --if-empty
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *app
+    command: uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *app
+    command: python -m pipeline.jobs worker
+    depends_on:
+      init:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

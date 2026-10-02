@@ -149,6 +149,11 @@ def current(engine: Engine, location: str) -> dict[str, Any]:
     avg = averaged_concentrations(recent).loc[ts]
     counted = set(BASES[basis_name()])
     latest = obs.loc[ts]
+    weather_cols = ["temp", "rh", "wind_speed", "wind_dir", "blh", "pressure"]
+    recent_weather = obs[weather_cols].iloc[-24 * 14 :]
+    wx = recent_weather.ffill().iloc[-1]  # latest known value of each variable (the weather feed can lag)
+    wx_valid = recent_weather["temp"].dropna()
+    wx_as_of = wx_valid.index[-1] if len(wx_valid) else None
     series = aqi["aqi"].dropna()
     prior = series.loc[: ts - pd.Timedelta(hours=3)]
     change = None if prior.empty else int(summary["aqi"] - prior.iloc[-1])
@@ -186,12 +191,14 @@ def current(engine: Engine, location: str) -> dict[str, Any]:
             for p in POLLUTANT_ORDER
         ],
         "weather": {
-            "temperature_c": num(latest["temp"]),
-            "humidity_pct": num(latest["rh"], 0),
-            "wind_kmh": num(latest["wind_speed"]),
-            "wind_direction_deg": num(latest["wind_dir"], 0),
-            "boundary_layer_m": num(latest["blh"], 0),
-            "pressure_hpa": num(latest["pressure"], 0),
+            "temperature_c": num(wx["temp"]),
+            "humidity_pct": num(wx["rh"], 0),
+            "wind_kmh": num(wx["wind_speed"]),
+            "wind_direction_deg": num(wx["wind_dir"], 0),
+            "boundary_layer_m": num(wx["blh"], 0),
+            "pressure_hpa": num(wx["pressure"], 0),
+            "as_of": iso(wx_as_of),
+            "lag_hours": None if wx_as_of is None else round((ts - wx_as_of).total_seconds() / 3600),
         },
         "categories": [{"name": c.name, "low": c.low, "high": c.high, "color": c.color} for c in CATEGORIES],
     }

@@ -53,7 +53,8 @@ def test_current_has_a_consistent_aqi_card(ready_client, location):
     assert all(p["sub_index"] is not None for p in body["pollutants"])
     assert body["freshness"]["data_through"] == body["observed_at"] or body["freshness"]["data_through"]
     assert [c["name"] for c in body["categories"]][0] == "Good" and len(body["categories"]) == 6
-    assert set(body["weather"]) >= {"temperature_c", "wind_kmh", "boundary_layer_m"}
+    assert set(body["weather"]) >= {"temperature_c", "wind_kmh", "boundary_layer_m", "as_of", "lag_hours"}
+    assert body["weather"]["temperature_c"] is not None and body["weather"]["lag_hours"] == 0
 
 
 def test_unknown_location_is_404_and_empty_database_is_503(ready_client, tmp_path):

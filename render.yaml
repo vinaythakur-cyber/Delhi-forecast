@@ -1,0 +1,18 @@
+# Render blueprint: one web service runs the API and the website.
+# STATUS: written from Render's documented format but NOT deployed or tested from this repository.
+# See README "Deploy" for the step-by-step (including the free-database caveat).
+services:
+  - type: web
+    name: delhi-aqi
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false # paste a PostgreSQL URL (Neon free tier, or Render Postgres)
+      - key: AQI_BASIS
+        value: pm2_5
+      - key: ENABLE_SCHEDULER
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
