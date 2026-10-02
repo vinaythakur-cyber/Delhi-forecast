@@ -19,9 +19,9 @@ htmlcov/
 data/*
 !data/README.md
 !data/.gitkeep
-ml/registry/*.joblib
-ml/registry/*.pkl
-ml/registry/*.bin
+ml/registry/*
+!ml/registry/.gitkeep
+!ml/registry/metrics.json
 
 # Node / Next.js
 node_modules/
